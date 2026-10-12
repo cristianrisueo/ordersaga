@@ -14,8 +14,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.17.0",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 [tool.ruff]
@@ -35,3 +39,12 @@ explicit_package_bases = true
 [[tool.mypy.overrides]]
 module = ["aiokafka.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Los tests importan app desde la raíz del servicio: el proyecto no se instala como paquete
+pythonpath = ["."]
+asyncio_mode = "auto"
+# Un único event loop para toda la sesión: el engine y sus conexiones asyncpg quedan ligados al loop donde se crean
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
