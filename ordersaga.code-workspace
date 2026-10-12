@@ -1,9 +1,22 @@
 // Workspace de OrderSaga. Al crear un servicio, añádelo aquí: los ajustes de abajo ya se aplican a todas las carpetas.
 {
   "folders": [
-    { "name": "ordersaga", "path": "." },
-    { "name": "orders", "path": "services/orders" },
-    { "name": "stock", "path": "services/stock" },
+    {
+      "name": "ordersaga",
+      "path": ".",
+    },
+    {
+      "name": "orders",
+      "path": "services/orders",
+    },
+    {
+      "name": "stock",
+      "path": "services/stock",
+    },
+    {
+      "name": "payments",
+      "path": "services/payments",
+    },
   ],
   "settings": {
     // Cada servicio usa el .venv de su carpeta (creado por uv sync)

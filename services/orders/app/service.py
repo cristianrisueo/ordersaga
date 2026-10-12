@@ -1,6 +1,7 @@
-# Lógica de pedidos: crear uno junto a su evento en la outbox y leer uno por id.
+# Lógica de pedidos: crear uno junto a su evento en la outbox, leer uno por id y confirmarlo tras el pago.
 import uuid
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Order, OutboxEvent
@@ -41,3 +42,12 @@ async def get_order(session: AsyncSession, order_id: uuid.UUID) -> Order | None:
     """Devuelve el pedido, o None si no existe."""
 
     return await session.get(Order, order_id)
+
+
+async def confirm_order(session: AsyncSession, event: OrderEvent) -> None:
+    """Actualiza un pedido a confirmed solo si sigue en pending: un evento repetido no toca ninguna fila."""
+
+    async with session.begin():
+        await session.execute(
+            update(Order).where(Order.id == event.order_id, Order.status == "pending").values(status="confirmed")
+        )

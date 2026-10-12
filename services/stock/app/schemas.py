@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class StockOut(BaseModel):
-    """Unidades disponibles de un producto tal devueltas por la API."""
+    """Unidades disponibles de un producto tal y como las devuelve la API."""
 
     product_id: str
     available: int

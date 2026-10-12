@@ -1,6 +1,6 @@
-# Entorno local de OrderSaga: Kafka y los servicios orders y stock, cada uno con su base de datos, API y procesos de eventos.
+# Entorno local de OrderSaga: Kafka y los servicios orders, stock y payments, cada uno con su base de datos, API y procesos de eventos.
 
-# Configuración común de los dos procesos de orders: misma imagen, mismo entorno y el código montado
+# Configuración común de los tres procesos de orders: misma imagen, mismo entorno y el código montado
 x-orders: &orders
   build: services/orders
   image: ordersaga-orders
@@ -21,6 +21,17 @@ x-stock: &stock
   # Solo se monta app/: montar la carpeta del servicio taparía el .venv de la imagen
   volumes:
     - ./services/stock/app:/app/app
+
+# Configuración común de los tres procesos de payments: misma imagen, mismo entorno y el código montado
+x-payments: &payments
+  build: services/payments
+  image: ordersaga-payments
+  environment:
+    DATABASE_URL: postgresql+asyncpg://payments:payments@db-payments:5432/payments
+    KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  # Solo se monta app/: montar la carpeta del servicio taparía el .venv de la imagen
+  volumes:
+    - ./services/payments/app:/app/app
 
 services:
   #* Kafka
@@ -115,6 +126,17 @@ services:
       kafka-init:
         condition: service_completed_successfully
 
+  # Consumidor de orders: lee los eventos de payments y confirma pedidos. Si falla, compose lo reinicia
+  orders-consumer:
+    <<: *orders
+    command: ["python", "-m", "app.events_consumer"]
+    restart: unless-stopped
+    depends_on:
+      orders-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+
   #* Stock
 
   # Base de datos de stock: productos, reservas y outbox. Sin puerto en el host ni volumen con nombre
@@ -168,6 +190,63 @@ services:
     restart: unless-stopped
     depends_on:
       stock-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+
+  #* Payments
+
+  # Base de datos de payments: pagos y outbox. Sin puerto en el host ni volumen con nombre
+  db-payments:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: payments
+      POSTGRES_PASSWORD: payments
+      POSTGRES_DB: payments
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payments -d payments"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # API de payments en el puerto 8003: crea las tablas al arrancar y está sana cuando /health responde 200
+  payments-api:
+    <<: *payments
+    ports:
+      - "8003:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      db-payments:
+        condition: service_healthy
+
+  # Productor de payments: publica en Kafka los eventos de la outbox de payments. Misma imagen que la api de payments
+  payments-producer:
+    <<: *payments
+    command: ["python", "-m", "app.events_producer"]
+    restart: unless-stopped
+    depends_on:
+      payments-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+
+  # Consumidor de payments: lee los eventos de stock y cobra los pedidos reservados. Si falla, compose lo reinicia
+  payments-consumer:
+    <<: *payments
+    command: ["python", "-m", "app.events_consumer"]
+    restart: unless-stopped
+    depends_on:
+      payments-api:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
