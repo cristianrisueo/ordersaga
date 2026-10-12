@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+# Registra los modelos en Base.metadata para create_all, sin depender de los imports de las rutas
+from app import models  # noqa: F401
 from app.db import Base, engine
 from app.routes import router
 
@@ -12,7 +14,7 @@ from app.routes import router
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Crea las tablas al arrancar y cierra el pool de conexiones al apagar."""
 
-    # Crea las tablas que falten (sin migraciones: los modelos llegan importados a través de las rutas)
+    # Crea las tablas que falten (sin migraciones)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

@@ -1,0 +1,6 @@
+# Lo que nunca entra en la imagen: entorno local y cachés
+.venv/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.vscode/

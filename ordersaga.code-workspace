@@ -3,6 +3,7 @@
   "folders": [
     { "name": "ordersaga", "path": "." },
     { "name": "orders", "path": "services/orders" },
+    { "name": "stock", "path": "services/stock" },
   ],
   "settings": {
     // Cada servicio usa el .venv de su carpeta (creado por uv sync)
