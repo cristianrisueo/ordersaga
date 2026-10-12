@@ -1,0 +1,18 @@
+# Entorno virtual de cada servicio (se regenera con uv sync)
+.venv/
+
+# Cachés de Python y de las herramientas
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+
+# Variables de entorno: pueden contener secretos
+.env
+
+# Editor: se ignora todo salvo la configuración compartida del proyecto
+.vscode/*
+!.vscode/settings.json
+
+# Sistema operativo
+.DS_Store

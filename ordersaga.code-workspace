@@ -1,0 +1,25 @@
+// Workspace de OrderSaga. Al crear un servicio, añádelo aquí: los ajustes de abajo ya se aplican a todas las carpetas.
+{
+  "folders": [
+    { "name": "ordersaga", "path": "." },
+    { "name": "orders", "path": "services/orders" },
+  ],
+  "settings": {
+    // Cada servicio usa el .venv de su carpeta (creado por uv sync)
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+
+    // Formatea con ruff al guardar, con la configuración del pyproject.toml de cada servicio
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.formatOnSave": true,
+    },
+
+    // Oculta las cachés en todas las carpetas, y los servicios dentro de la raíz para no verlos duplicados
+    "files.exclude": {
+      "services": true,
+      "**/__pycache__": true,
+      "**/.mypy_cache": true,
+      "**/.ruff_cache": true,
+    },
+  },
+}
