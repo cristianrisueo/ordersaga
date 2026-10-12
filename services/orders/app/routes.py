@@ -16,7 +16,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_order(data: OrderIn, session: SessionDep) -> OrderOut:
-    """Crea un pedido en pending."""
+    """Crea un pedido en pending y lo devuelve en formato OrderOut."""
 
     order = await service.create_order(session, data)
     return OrderOut.model_validate(order)

@@ -14,7 +14,7 @@ class OrderIn(BaseModel):
 
 
 class OrderOut(BaseModel):
-    """Pedido tal y como lo devuelve la API."""
+    """Pedido tal devuelto por la API."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -27,7 +27,10 @@ class OrderOut(BaseModel):
 
 
 class OrderEvent(BaseModel):
-    """Evento de la saga: todos los servicios publican estos mismos campos."""
+    """
+    Evento de creación de pedido: todos los servicios publican estos mismos campos. En un patrón
+    Saga por orquestación, el evento publicado tiene los mismos campos en todos los servicios.
+    """
 
     event_type: str
     order_id: uuid.UUID

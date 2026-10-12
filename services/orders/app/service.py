@@ -10,7 +10,7 @@ from app.schemas import OrderEvent, OrderIn
 async def create_order(session: AsyncSession, data: OrderIn) -> Order:
     """Guarda el pedido en pending y su evento order.created en la outbox, en la misma transacción."""
 
-    # El id se genera aquí para poder meterlo en el evento antes de escribir en la base de datos
+    # Crea el pedido
     order = Order(
         id=uuid.uuid7(),
         product_id=data.product_id,
@@ -19,7 +19,7 @@ async def create_order(session: AsyncSession, data: OrderIn) -> Order:
         status="pending",
     )
 
-    # El payload es exactamente el mensaje que publicará el productor
+    # Crea el evento del pedido
     event = OrderEvent(
         event_type="order.created",
         order_id=order.id,
@@ -28,11 +28,12 @@ async def create_order(session: AsyncSession, data: OrderIn) -> Order:
         amount=order.amount,
     )
 
-    # Pedido y evento se confirman juntos: o se guardan los dos o ninguno
+    # Guarda en una Tx pedido y evento en sus respectivas tablas (orders y outbox)
     async with session.begin():
         session.add(order)
         session.add(OutboxEvent(event_type=event.event_type, payload=event.model_dump(mode="json")))
 
+    # Devuelve el pedido creado
     return order
 
 

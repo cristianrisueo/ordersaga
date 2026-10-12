@@ -1,4 +1,4 @@
-# Tablas de orders: los pedidos y la outbox con los eventos pendientes de publicar.
+# Esquemas SQL: los pedidos y la outbox con los eventos pendientes de publicar.
 import uuid
 from datetime import datetime
 from typing import Any
