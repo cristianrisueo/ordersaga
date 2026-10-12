@@ -12,10 +12,7 @@ class StockOut(BaseModel):
 
 
 class OrderEvent(BaseModel):
-    """
-    Evento de stock reservado: todos los servicios publican estos mismos campos. En un patrón
-    Saga por orquestación, el evento publicado tiene los mismos campos en todos los servicios.
-    """
+    """Evento de la saga: todos los servicios publican y reciben estos mismos campos."""
 
     event_type: str
     order_id: uuid.UUID

@@ -1,4 +1,4 @@
-# Lógica de pedidos: crear uno junto a su evento en la outbox, leer uno por id y confirmarlo tras el pago.
+# Lógica de pedidos: crear uno junto a su evento en la outbox, leer uno por id, y confirmarlo o cancelarlo según la saga.
 import uuid
 
 from sqlalchemy import update
@@ -50,4 +50,13 @@ async def confirm_order(session: AsyncSession, event: OrderEvent) -> None:
     async with session.begin():
         await session.execute(
             update(Order).where(Order.id == event.order_id, Order.status == "pending").values(status="confirmed")
+        )
+
+
+async def cancel_order(session: AsyncSession, event: OrderEvent) -> None:
+    """Actualiza un pedido a cancelled solo si sigue en pending: un evento repetido no toca ninguna fila."""
+
+    async with session.begin():
+        await session.execute(
+            update(Order).where(Order.id == event.order_id, Order.status == "pending").values(status="cancelled")
         )

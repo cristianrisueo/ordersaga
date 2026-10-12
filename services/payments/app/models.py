@@ -11,7 +11,7 @@ from app.db import Base
 
 
 class Payment(Base):
-    """Pago de un pedido, uno por pedido; amount va en euros enteros y status es completed."""
+    """Pago de un pedido, uno por pedido; amount va en euros enteros y status es completed o failed."""
 
     __tablename__ = "payments"
 

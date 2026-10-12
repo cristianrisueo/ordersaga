@@ -11,13 +11,15 @@ logger = logging.getLogger("app.events_handlers")
 
 
 async def handle_event(session: AsyncSession, value: dict[str, Any]) -> None:
-    """Valida el mensaje y confirma el pedido si es payment.completed; el resto de tipos se ignoran."""
+    """Valida el mensaje; confirma el pedido con payment.completed y lo cancela con stock.failed o stock.released."""
 
     # Valida el mensaje; si no es un evento válido, la excepción tumba el consumidor
     event = OrderEvent.model_validate(value)
 
-    # Reacciona solo a los pagos completados
+    # Confirma con el pago completado y cancela solo cuando stock ha terminado (sin unidades o unidades liberadas)
     if event.event_type == "payment.completed":
         await service.confirm_order(session, event)
+    elif event.event_type in ("stock.failed", "stock.released"):
+        await service.cancel_order(session, event)
     else:
         logger.debug("Ignorado %s del pedido %s", event.event_type, event.order_id)

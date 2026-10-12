@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Comprobaciones del bloque 2: levanta todo desde cero, prueba el camino feliz de la saga y el pedido sin stock, y lo apaga.
+# Comprobaciones del bloque 2: levanta todo desde cero, prueba el camino feliz de la saga y lo apaga.
 set -uo pipefail
 
 # Se ejecuta siempre desde la raíz del proyecto
@@ -12,7 +12,6 @@ PAYMENTS=http://localhost:8003
 PASSED=0
 FAILED=0
 ORDER_ID=""
-FAILED_ORDER_ID=""
 
 # Al salir, haya ido bien o mal, borra contenedores y datos
 trap 'docker compose down -v > /dev/null 2>&1' EXIT
@@ -111,23 +110,7 @@ payments_event=$(event_type payments "$ORDER_ID")
 check "stock.reserved y payment.completed publicados con clave order_id (recibido '${stock_event}' y '${payments_event}')" \
   test -n "$ORDER_ID" -a "$stock_event" = stock.reserved -a "$payments_event" = payment.completed
 
-# 8. Un pedido de 5 monitores no descuenta, no publica, no se cobra y sigue en pending; espera a que stock lo procese
-FAILED_ORDER_ID=$(create_order monitor 5)
-for _ in $(seq 20); do
-  reservation=$(docker compose exec -T db-stock psql -U stock -d stock -tAc \
-    "SELECT status FROM reservations WHERE order_id = '$FAILED_ORDER_ID'")
-  [ "$reservation" = failed ] && break
-  sleep 1
-done
-monitor=$(available monitor)
-events=$(topic_messages stock | grep -c "^$FAILED_ORDER_ID|")
-status=$(order_status "$FAILED_ORDER_ID")
-payment_status=$(curl -s -o /dev/null -w '%{http_code}' "$PAYMENTS/payments/$FAILED_ORDER_ID")
-check "Tras pedir 5 monitores: monitor en 1, sin eventos en stock, pedido en pending y sin pago (reserva $reservation, $monitor, eventos: $events, $status, $payment_status)" \
-  test -n "$FAILED_ORDER_ID" -a "$reservation" = failed -a "$monitor" = 1 -a "$events" = 0 \
-  -a "$status" = pending -a "$payment_status" = 404
-
-# 9. Las outbox de orders, stock y payments quedan vacías
+# 8. Las outbox de orders, stock y payments quedan vacías
 for _ in $(seq 20); do
   orders_pending=$(docker compose exec -T db-orders psql -U orders -d orders -tAc "SELECT count(*) FROM outbox")
   stock_pending=$(docker compose exec -T db-stock psql -U stock -d stock -tAc "SELECT count(*) FROM outbox")

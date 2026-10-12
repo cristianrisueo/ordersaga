@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://payments:payments@db-payments:5432/payments"
     kafka_bootstrap_servers: str = "kafka:9092"
+    max_amount: int = 1000
 
 
 @lru_cache

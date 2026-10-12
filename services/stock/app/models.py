@@ -20,7 +20,7 @@ class Product(Base):
 
 
 class Reservation(Base):
-    """Reserva de unidades para un pedido, una por pedido; status es reserved o failed."""
+    """Reserva de unidades para un pedido, una por pedido; status es reserved, failed o released."""
 
     __tablename__ = "reservations"
 

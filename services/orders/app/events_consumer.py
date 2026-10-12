@@ -10,8 +10,8 @@ from app.config import get_settings
 from app.db import SessionFactory, engine
 from app.events_handlers import handle_event
 
-# Topics que escucha orders (en el bloque 3 se añade stock)
-TOPICS = ["payments"]
+# Topics que escucha orders: payments para confirmar y stock para cancelar
+TOPICS = ["payments", "stock"]
 
 logger = logging.getLogger("app.events_consumer")
 
